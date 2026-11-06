@@ -4,6 +4,17 @@ Projeto Integrador, fase **Implementação: bases do sistema (login e cadastro b
 
 Aplicação desktop em **Python 3 + SQLite + Tkinter** para a equipe da loja Amuletta (acessórios femininos) entrar com login e manter o cadastro de produtos que aparecem na loja virtual ([protótipo do site](https://gabizrm-prog.github.io/amuletta/)).
 
+## Telas
+
+**Login**
+
+<img src="docs/telas/01-login.png" width="340"> <img src="docs/telas/02-login-erro.png" width="340">
+
+**Cadastro de produtos (CRUD)**
+
+![Lista de produtos](docs/telas/03-produtos-lista.png)
+![Editar produto](docs/telas/05-produto-editar.png)
+
 ## Funcionalidades
 
 - **Login** com e-mail e senha validados no banco (senha guardada com hash PBKDF2-SHA256 + salt, nunca em texto puro).
