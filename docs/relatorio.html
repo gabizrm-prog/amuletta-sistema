@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Amuletta — Relatório da fase de implementação</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: #2B1A1D; font-size: 10.5pt; line-height: 1.45; margin: 0; }
+  h1 { color: #B3122E; font-size: 22pt; margin: 0 0 2px; letter-spacing: 1px; }
+  h2 { color: #B3122E; font-size: 14pt; border-bottom: 2px solid #B3122E; padding-bottom: 3px; margin: 22px 0 10px; }
+  h3 { font-size: 11.5pt; margin: 16px 0 6px; }
+  .sub { color: #7A6A6D; margin: 0 0 14px; }
+  table { border-collapse: collapse; width: 100%; margin: 6px 0 12px; font-size: 9.5pt; }
+  th, td { border: 1px solid #DCCFD1; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #F1E4E6; }
+  code { font-family: Consolas, monospace; font-size: 9pt; background: #F6EEEF; padding: 0 3px; }
+  .ficha td:first-child { width: 28%; font-weight: 600; background: #FBF6F2; }
+  figure { margin: 8px 0 14px; page-break-inside: avoid; }
+  figure img { max-width: 100%; border: 1px solid #DCCFD1; }
+  figure.pequena img { width: 52%; }
+  figcaption { font-size: 9pt; color: #7A6A6D; margin-top: 3px; }
+  .duas { display: flex; gap: 12px; }
+  .duas figure { flex: 1; }
+  .duas img { width: 100%; }
+  .quebra { page-break-before: always; }
+  ul { margin: 4px 0 10px; padding-left: 20px; }
+</style>
+</head>
+<body>
+
+<h1>AMULETTA</h1>
+<p class="sub">Projeto Integrador · Fase de Implementação: Bases do Sistema (Login e Cadastros Base / CRUD) · 05/11/2026</p>
+
+<table class="ficha">
+  <tr><td>Integrantes</td><td>Gabriela Ramos &nbsp;·&nbsp; ______________________ &nbsp;·&nbsp; ______________________</td></tr>
+  <tr><td>Sistema</td><td>Sistema administrativo da loja virtual Amuletta (acessórios femininos)</td></tr>
+  <tr><td>Tecnologias</td><td>Python 3.12, SQLite 3 (módulo <code>sqlite3</code>), Tkinter (interface), <code>unittest</code> (testes)</td></tr>
+  <tr><td>Entregue nesta fase</td><td>Módulo de login e cadastro base de <b>produtos</b> com CRUD completo (incluir, consultar, alterar, excluir)</td></tr>
+  <tr><td>Código-fonte</td><td>github.com/gabizrm-prog/amuletta-sistema</td></tr>
+</table>
+
+<h2>1. Atualização dos protótipos de tela</h2>
+<p>Nas fases anteriores prototipamos a loja virtual vista pela <b>cliente</b> (catálogo, sacola, checkout). O catálogo do protótipo era fixo no código; nesta fase criamos o lado da <b>equipe da loja</b>, que passa a manter esses produtos num banco de dados. Os produtos iniciais do banco são os mesmos oito do protótipo. Mudanças em relação ao protótipo:</p>
+<ul>
+  <li>Nova <b>tela de login</b> (a área administrativa não existia no protótipo). Só usuários cadastrados no banco entram.</li>
+  <li>Nova <b>tela de cadastro de produtos</b>: lista à esquerda e formulário à direita na mesma tela, para incluir, alterar e excluir sem trocar de janela.</li>
+  <li>Os campos do formulário seguem o card de produto do protótipo (nome, categoria, preço, descrição, selo NOVO) e acrescentam o <b>estoque</b>.</li>
+  <li>Mantida a identidade visual: vermelho <code>#B3122E</code> sobre fundo creme.</li>
+</ul>
+
+<h3>Tela 1 — Login</h3>
+<div class="duas">
+  <figure><img src="telas/01-login.png" alt=""><figcaption>Login com e-mail e senha.</figcaption></figure>
+  <figure><img src="telas/02-login-erro.png" alt=""><figcaption>Credenciais inválidas: mensagem e senha apagada.</figcaption></figure>
+</div>
+
+<h3>Tela 2 — Cadastro de produtos</h3>
+<figure><img src="telas/03-produtos-lista.png" alt=""><figcaption>Consulta: todos os produtos, com usuário logado no topo.</figcaption></figure>
+<figure><img src="telas/04-produto-incluir.png" alt=""><figcaption>Inclusão: formulário preenchido, pronto para “Incluir”.</figcaption></figure>
+<figure><img src="telas/05-produto-editar.png" alt=""><figcaption>Alteração e exclusão: ao selecionar um produto na lista, o formulário é carregado e os botões “Salvar alterações” e “Excluir” ficam ativos.</figcaption></figure>
+<figure><img src="telas/06-produto-busca.png" alt=""><figcaption>Consulta com busca: “colar” filtra a lista na hora (também é possível filtrar por categoria).</figcaption></figure>
+
+<h2 class="quebra">2. Dicionário de dados (SQLite)</h2>
+<p>Banco: <code>amuletta.db</code>. Script de criação: <code>schema.sql</code> (executado por <code>criar_banco.py</code> ou automaticamente ao abrir o sistema). Chaves estrangeiras ativadas com <code>PRAGMA foreign_keys = ON</code>.</p>
+
+<h3>Tabela <code>usuarios</code> — quem pode entrar no sistema</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Restrições</th><th>Descrição</th></tr>
+  <tr><td>id</td><td>INTEGER</td><td>PK, autoincremento</td><td>Identificador do usuário</td></tr>
+  <tr><td>nome</td><td>TEXT</td><td>NOT NULL</td><td>Nome do usuário</td></tr>
+  <tr><td>email</td><td>TEXT</td><td>NOT NULL, UNIQUE, sem diferença de maiúsculas</td><td>Login do usuário</td></tr>
+  <tr><td>senha_hash</td><td>TEXT</td><td>NOT NULL</td><td>Hash PBKDF2-SHA256 da senha (200.000 iterações)</td></tr>
+  <tr><td>salt</td><td>TEXT</td><td>NOT NULL</td><td>Valor aleatório (16 bytes, hex) usado no hash</td></tr>
+  <tr><td>perfil</td><td>TEXT</td><td>NOT NULL, 'admin' ou 'funcionario'</td><td>Nível de acesso</td></tr>
+  <tr><td>ativo</td><td>INTEGER</td><td>NOT NULL, 0 ou 1, padrão 1</td><td>Usuário desativado não consegue entrar</td></tr>
+  <tr><td>criado_em</td><td>TEXT</td><td>padrão data/hora atual</td><td>Data de cadastro</td></tr>
+</table>
+
+<h3>Tabela <code>categorias</code> — tipos de acessório</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Restrições</th><th>Descrição</th></tr>
+  <tr><td>id</td><td>INTEGER</td><td>PK, autoincremento</td><td>Identificador da categoria</td></tr>
+  <tr><td>nome</td><td>TEXT</td><td>NOT NULL, UNIQUE</td><td>Colares, Brincos, Anéis, Pulseiras, Bolsas, Cabelo</td></tr>
+</table>
+
+<h3>Tabela <code>produtos</code> — cadastro base (CRUD)</h3>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Restrições</th><th>Descrição</th></tr>
+  <tr><td>id</td><td>INTEGER</td><td>PK, autoincremento</td><td>Código do produto</td></tr>
+  <tr><td>nome</td><td>TEXT</td><td>NOT NULL (até 80 caracteres, validado no Python)</td><td>Nome exibido na loja</td></tr>
+  <tr><td>descricao</td><td>TEXT</td><td>NOT NULL, padrão ''</td><td>Material, tamanho, detalhes</td></tr>
+  <tr><td>categoria_id</td><td>INTEGER</td><td>NOT NULL, FK → categorias.id</td><td>Categoria do produto</td></tr>
+  <tr><td>preco</td><td>REAL</td><td>NOT NULL, &gt; 0</td><td>Preço de venda em R$</td></tr>
+  <tr><td>estoque</td><td>INTEGER</td><td>NOT NULL, ≥ 0, padrão 0</td><td>Quantidade disponível</td></tr>
+  <tr><td>lancamento</td><td>INTEGER</td><td>0 ou 1, padrão 0</td><td>Se exibe o selo NOVO na loja</td></tr>
+  <tr><td>criado_em</td><td>TEXT</td><td>padrão data/hora atual</td><td>Data de inclusão</td></tr>
+  <tr><td>atualizado_em</td><td>TEXT</td><td>padrão data/hora atual</td><td>Atualizado a cada alteração</td></tr>
+</table>
+<p><b>Relacionamento:</b> <code>categorias</code> 1 — N <code>produtos</code> (cada produto pertence a uma categoria). Índices em <code>produtos.categoria_id</code> e <code>produtos.nome</code> para a consulta.</p>
+
+<h2>3. Especificação dos programas e módulos</h2>
+<table>
+  <tr><th style="width:22%">Arquivo</th><th>Responsabilidade</th><th style="width:34%">Principais funções</th></tr>
+  <tr><td><code>main.py</code></td><td>Ponto de entrada: prepara o banco e abre a interface.</td><td><code>main()</code></td></tr>
+  <tr><td><code>criar_banco.py</code></td><td>Cria o arquivo <code>amuletta.db</code>; com <code>--recriar</code> apaga e recria.</td><td><code>main()</code></td></tr>
+  <tr><td><code>schema.sql</code></td><td>Comandos <code>CREATE TABLE</code> e <code>CREATE INDEX</code>.</td><td>—</td></tr>
+  <tr><td><code>app/banco.py</code></td><td>Conexão com o SQLite (commit em caso de sucesso, rollback em erro, sempre fecha), criação das tabelas e dados iniciais (6 categorias, 8 produtos, 2 usuários).</td><td><code>conectar()</code>, <code>criar_tabelas()</code>, <code>popular_dados_iniciais()</code>, <code>inicializar()</code></td></tr>
+  <tr><td><code>app/auth.py</code></td><td>Módulo de login. Cadastra usuários com senha em hash e valida e-mail e senha. Mesma mensagem para e-mail inexistente e senha errada; bloqueia usuário inativo.</td><td><code>cadastrar_usuario()</code>, <code>autenticar()</code>, <code>gerar_hash()</code></td></tr>
+  <tr><td><code>app/produtos.py</code></td><td>Cadastro base de produtos. Valida os dados (nome obrigatório, preço &gt; 0, estoque ≥ 0, categoria existente) antes de gravar. Usa SQL parametrizado (<code>?</code>) contra SQL injection.</td><td><b>C</b> <code>incluir()</code> · <b>R</b> <code>consultar()</code>, <code>buscar_por_id()</code> · <b>U</b> <code>alterar()</code> · <b>D</b> <code>excluir()</code></td></tr>
+  <tr><td><code>app/telas.py</code></td><td>Interface Tkinter: tela de login e tela de produtos (lista + formulário). Só chama as funções de <code>auth</code> e <code>produtos</code>, sem SQL na interface.</td><td><code>TelaLogin</code>, <code>TelaProdutos</code>, <code>Aplicacao</code></td></tr>
+  <tr><td><code>tests/test_sistema.py</code></td><td>11 testes automatizados de login e CRUD, cada um em banco temporário.</td><td><code>python -m unittest -v</code></td></tr>
+</table>
+
+<h3>Fluxo</h3>
+<p><code>main.py</code> → cria/abre o banco → <b>Tela de login</b> → <code>auth.autenticar()</code> confere o hash da senha → <b>Tela de produtos</b> → cada botão chama uma função de <code>produtos.py</code>, que valida e executa o SQL → a lista é recarregada do banco. “Sair” volta para o login.</p>
+
+<h3>Como executar</h3>
+<p>Requer Python 3.10 ou superior, sem bibliotecas externas. Na pasta do projeto: <code>python main.py</code>. Usuários de teste: <code>admin@amuletta.com</code> / <code>admin123</code> (admin) e <code>loja@amuletta.com</code> / <code>loja123</code> (funcionário).</p>
+
+<h3>Testes</h3>
+<p>Resultado de <code>python -m unittest -v</code>: <b>11 testes, todos aprovados</b>. Cobrem login válido, senha errada, usuário inexistente, usuário inativo, senha não gravada em texto puro, e-mail duplicado, CRUD completo, consulta com filtros, validações e exclusão de produto inexistente.</p>
+
+<h3>Próximas fases</h3>
+<ul>
+  <li>Tela de cadastro de usuários (só para o perfil admin) e de categorias.</li>
+  <li>Ligar o site da loja ao banco, para o catálogo vir da tabela <code>produtos</code>.</li>
+  <li>Cadastro de pedidos, com baixa de estoque.</li>
+</ul>
+
+</body>
+</html>
